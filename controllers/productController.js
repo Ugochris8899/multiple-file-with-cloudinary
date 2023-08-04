@@ -2,14 +2,14 @@ const productModel = require('../models/productModel');
 const cloudinary = require('../utils/cloudinary')
 const validator = require('fastest-validator')
 
-// Create a new product
+// // Create a new product
 const createProduct = async (req, res) => {
     try {
         const { name, price } = req.body;
         const imageUrls = []
         const publicIds = []
         // checks if the user is passing an image 
-        if (req.files && req.files.images) {
+        if (req.files && req.files.images.length > 1) {
             // iterates over the images being uploaded and get their paths
             for (const image of req.files.images) {
                 // uploads the images to the cloudinary storage
@@ -18,6 +18,12 @@ const createProduct = async (req, res) => {
                 imageUrls.push(file.secure_url);
                 publicIds.push(file.public_id);
             }
+        } else {
+            const file = await cloudinary.uploader.upload(
+                req.files.images.tempFilePath
+            )
+            imageUrls.push(file.secure_url);
+                publicIds.push(file.public_id);
         }
         const product = new productModel({
             name,
@@ -60,6 +66,7 @@ const createProduct = async (req, res) => {
         })
     }
 }
+
 
 // Get all products
 const getAll = async (req, res) => {
